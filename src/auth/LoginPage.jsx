@@ -1,15 +1,19 @@
-import { useForm } from "react-hook-form";
+import { set, useForm } from "react-hook-form";
 import { API_URL } from "../api/api";
 import axios from "axios";
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import { useNavigate } from "react-router-dom";
+import { useEffect } from "react";
 
-const LoginPage = ({ onLogin }) => {
+const LoginPage = () => {
     const {
         register,
         handleSubmit,
         formState: { errors },
     } = useForm();
+    const Navigate = useNavigate();
+
 
     const onSubmit = async (data) => {
         try {
@@ -21,10 +25,12 @@ const LoginPage = ({ onLogin }) => {
                 toast.success("✅ Logged in successfully");
 
                 const result = response.data;
-                console.log("Login Result:", result);
 
                 if (result.token) {
                     localStorage.setItem("token", result.token);
+                    setTimeout(() => {
+                        Navigate("/welcome");
+                    }, 1000);
                 }
             } else {
                 console.warn("Unexpected status:", response.status);
@@ -42,8 +48,16 @@ const LoginPage = ({ onLogin }) => {
             }
         }
     };
+    useEffect(() => {
+        document.body.classList.add("login-bg");
+        return () => {
+            document.body.classList.remove("login-bg");
+        };
+    }, []);
+
 
     return (
+
         <div className="flex">
             <div className="min-h-1/2 transparent rounded-2xl">
                 <div className="mx-4 sm:mx-24 md:mx-34 lg:mx-56 mx-auto flex space-y-4 py-16 font-semibold text-gray-500 flex-col">
