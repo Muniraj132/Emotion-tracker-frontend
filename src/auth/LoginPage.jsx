@@ -1,44 +1,75 @@
-import React, { useEffect, useState } from "react";
-
+import { useForm } from "react-hook-form";
+import { API_URL } from "../api/api";
+import axios from "axios";
+import { toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 const LoginPage = ({ onLogin }) => {
-    const [email, setEmail] = useState("");
-    const [password, setPassword] = useState("");
-    const [error, setError] = useState(null);
+    const {
+        register,
+        handleSubmit,
+        formState: { errors },
+    } = useForm();
 
-    const handleSubmit = (e) => {
-        e.preventDefault();
-        setError(null);
-        if (!email || !password) {
-            setError("Please fill in both fields.");
-            return;
+    const onSubmit = async (data) => {
+        try {
+            const response = await axios.post(`${API_URL}/auth/login`, data, {
+                headers: { "Content-Type": "application/json" },
+            });
+
+            if (response.status === 200) {
+                toast.success("✅ Logged in successfully");
+
+                const result = response.data;
+                console.log("Login Result:", result);
+
+                if (result.token) {
+                    localStorage.setItem("token", result.token);
+                }
+            } else {
+                console.warn("Unexpected status:", response.status);
+                toast.error("❌ Login failed");
+            }
+        } catch (err) {
+            console.error("Error during login:", err);
+
+            if (err.response) {
+                toast.error(`❌ ${err.response.data.message || "Login failed"}`);
+            } else if (err.request) {
+                toast.error("⚠️ Cannot reach server. Please check if backend is running.");
+            } else {
+                toast.error("Something went wrong: " + err.message);
+            }
         }
-        onLogin({ email, password });
     };
+
     return (
-        <div className="flex min-h-screen items-center justify-center">
-            <div className="min-h-1/2 transparent border rounded-2xl">
-                <div className="mx-4 sm:mx-24 md:mx-34 lg:mx-56 mx-auto flex items-center space-y-4 py-16 font-semibold text-gray-500 flex-col">
+        <div className="flex">
+            <div className="min-h-1/2 transparent rounded-2xl">
+                <div className="mx-4 sm:mx-24 md:mx-34 lg:mx-56 mx-auto flex space-y-4 py-16 font-semibold text-gray-500 flex-col">
                     <div className="flex justify-center gap-4 text-5xl mb-6 animate-pulse">
                         <span>😊</span>
                         <span>🌸</span>
                         <span>☀️</span>
-                        <span>🌈</span>
+                        <span>🌸</span>
                         <span>💖</span>
                     </div>
-                    <h2 className="text-white text-2xl text-gray-800 text-center">
+                    <h2 className="text-white text-2xl text-gray-800">
                         Welcome back 💛
                         <br />
                         Let’s take care of your emotions together.
                     </h2>
-                    <input className="w-full p-2 text-white rounded-md  border text-gray-800"
-                        placeholder="Enter your email" type="email" name="email" id="" />
-                    <input className="w-full p-2 text-white rounded-md border" placeholder="Enter your password"
-                        type="password" name="password" id="" />
-                    <input className="w-full p-2 bg-gray-50 rounded-full font-bold  border"
-                        type="submit" value="Login" id="" />
-
-                    <p className="text-black">Don’t have an account yet? <a className="font-semibold text-sky-900" href="#">Sign up and let calmness guide your day 💫</a></p>
+                    <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-4">
+                        <input className="w-full p-2 text-white rounded-md  border text-gray-800" {...register("email", { required: true })}
+                            placeholder="Enter your email" type="email" name="email" id="" />
+                        {errors.email && <span className="text-red-500 text-sm text-left">Email is required</span>}
+                        <input className="w-full p-2 text-white rounded-md border" {...register("password", { required: true })}
+                            placeholder="Enter your password" type="password" name="password" id="" />
+                        {errors.password && <span className="text-red-500 text-sm text-left">Password is required</span>}
+                        <input className="w-full p-2 bg-gray-50 rounded-full font-bold  border" style={{ 'cursor': 'pointer' }}
+                            type="submit" value="Login" id="" />
+                    </form>
+                    {/* <p className="text-black">Don’t have an account yet? <a className="font-semibold text-sky-900" href="#">Sign up and let calmness guide your day 💫</a></p> */}
                 </div>
             </div>
 
